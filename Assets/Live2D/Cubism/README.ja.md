@@ -2,9 +2,11 @@
 
 ---
 
-# CubismUnityComponents
+# Cubism Unity Components
 
-Unity用のCubismSDKのオープンコンポーネントです。
+Unity用のCubism SDKのオープンコンポーネントです。
+
+モデルをロードするには Live2D Cubism Core と組み合わせて使用します。
 
 SDKパッケージのダウンロードページをお探しの場合は、[ダウンロードページ](https://www.live2d.com/download/cubism-sdk/download-unity/)にアクセスしてください。
 
@@ -15,6 +17,12 @@ SDKパッケージのダウンロードページをお探しの場合は、[ダ�
 ## お知らせ
 
 ご使用前に[お知らせ](NOTICE.ja.md)をお読みください。
+
+## Cubism 5新機能や過去バージョンとの互換性について
+
+本 SDK はCubism 5に対応した製品です。  
+Cubism 5 Editorに搭載された新機能のSDK対応については [こちら](https://docs.live2d.com/cubism-sdk-manual/cubism-5-new-functions/)をご確認ください。  
+過去バージョンのCubism SDKとの互換性については [こちら](https://docs.live2d.com/cubism-sdk-manual/compatibility-with-cubism-5/)をご確認ください。
 
 ## 構造
 
@@ -28,7 +36,7 @@ SDKパッケージのダウンロードページをお探しの場合は、[ダ�
 
 #### フレームワーク
 
-このグループのコンポーネントとクラスは、リップシンクやCubismの組み込み用ファイルとUnityの統合などの追加機能を提供します。CubismファイルをプレハブとAnimationClipに変換するのはここで行われます。すべてのフレームワークコードは`./Assets/Live2D/Cubism/Framework`にあります。
+このグループのコンポーネントとクラスは、リップシンクやCubismの組み込み用ファイルとUnityの統合などの追加機能を提供します。CubismファイルをプレハブとAnimationClipに変換する機能はここにあります。すべてのフレームワークコードは`./Assets/Live2D/Cubism/Framework`にあります。
 
 #### レンダリング
 
@@ -46,18 +54,24 @@ Unity Editor拡張機能は、`./Assets/Live2D/Cubism/Editor`にあります。
 
 | Unity | バージョン |
 | --- | --- |
-| Tech Stream | 2022.2.2f1 |
-| LTS | 2021.3.16f1 |
-| LTS | 2020.3.43f1 |
+| Latest | 6000.0.49f1 |
+| LTS | 2022.3.61f1 |
 
 | ライブラリ / ツール | バージョン |
 | --- | --- |
-| Android SDK / NDK | *1 |
-| Visual Studio 2022 | 17.4.4 |
-| Windows SDK | 10.0.22621.0 |
-| Xcode | 14.2 |
+| Android SDK / NDK | *2 |
+| Visual Studio 2022 | 17.14.2 |
+| Windows SDK | 11.0.26100.3916 |
+| Xcode | 16.1 |
 
-*1 Unityに組み込まれたライブラリまたは推奨ライブラリを使用してください。
+*2 Unityに組み込まれたライブラリまたは推奨ライブラリを使用してください。
+
+| HarmonyOS NEXT 対応ツール | バージョン |
+| --- | --- |
+| Tuanjie | 1.5.2 |
+| DevEco Studio *3 | 5.0.13.200 |
+
+*3 中国国外でのHarmonyOS NEXT向けビルドはDevEcoを通じてビルドする必要があります。
 
 ### C#コンパイラ
 
@@ -73,17 +87,19 @@ https://docs.unity3d.com/ja/2018.4/Manual/CSharpCompiler.html
 
 | プラットフォーム | バージョン |
 | --- | --- |
-| Android | 13 |
-| iOS | 16.2 |
-| iPadOS | 16.2 |
-| Ubuntu | 20.04.5 |
-| macOS | 12.6.2 |
-| Windows 10 | 22H2 |
-| Google Chrome | 109.0.5414.75 |
-| Chrome OS 64bit (x86_64) | 108.0.5359.172 |
-| Chrome OS 32bit (ARMv8) (*2) | 108.0.5359.172 |
+| Android | 16 |
+| iOS | 18.5 |
+| iPadOS | 18.5 |
+| Ubuntu | 24.04.2 |
+| macOS | 15.5 |
+| Windows 11 | 24H2 (*4) |
+| Google Chrome | 131.0.6778.86 |
+| Chrome OS x86_64 | 130.0.6723.126 |
+| Chrome OS ARMv8 (*5) | 130.0.6723.126　|
+| HarmonyOS NEXT | 5.0.0.102 |
 
-*2 Android向けAPKファイルでの動作確認です。
+*4 Unity6ではUWP向けビルドは動作確認をしておりません。
+*5 Android向けAPKファイルでの動作確認です。
 
 ## ブランチ
 
@@ -105,7 +121,7 @@ Coreラッパーでは、unsafeコードのブロックを許可する必要が�
 
 ### フォークとプルリクエスト
 
-修正、改善、さらには新機能をもたらすかどうかにかかわらず、プルリクエストに感謝します。ただし、ラッパーは可能な限り軽量で浅くなるように設計されているため、バグ修正とメモリ/パフォーマンスの改善のみを行う必要があることに注意してください。メインリポジトリを可能な限りクリーンに保つために、必要に応じて個人用フォークと機能ブランチを作成してください。
+修正、改善、さらには新機能をもたらすかどうかにかかわらず、プルリクエストに感謝します。メインリポジトリを可能な限りクリーンに保つために、必要に応じて個人用フォークと機能ブランチを作成してください。
 
 ### バグ
 
@@ -127,9 +143,9 @@ SDKの将来についてのフィードバックにも関心があります。Li
 - それ以外の場所ではLINQを使用せず、`foreach`よりも`for`を優先してください。
 - アクセス修飾子を明示的にするようにしてください。`void Update()`ではなく `private void Update()`を使いましょう。
 
-## コミュニティ
+## フォーラム
 
-ご不明な点がございましたら、公式のLive2Dコミュニティに参加して、他のユーザーと話し合ってください。
+ご不明な点がございましたら、公式のLive2Dフォーラムに参加して、他のユーザーと話し合ってください。
 
-- [Live2D 公式コミュニティ](https://creatorsforum.live2d.com/)
-- [Live2D community (English)](https://community.live2d.com/)
+- [Live2D 公式クリエイターズフォーラム](https://creatorsforum.live2d.com/)
+- [Live2D Creator's Forum(English)](https://community.live2d.com/)

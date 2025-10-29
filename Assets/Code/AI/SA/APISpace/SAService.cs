@@ -2,20 +2,29 @@ using System;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Web;
+using System.Linq;
+using UnityEngine;
+using Newtonsoft.Json;
 
 public class SAService
 {
-    private string APISpace_Token;
+    private string API_Key;
+    private string API_Endpoint = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+    private string Model = "ep-20251029155135-mnw5s";
+    
     public SAService()
     {
-        APISpace_Token = GameSettingsEntity.Instance.APISpaceAPI;
+        API_Key = GameSettingsEntity.Instance.APISpaceAPI;
         // 注册 OnGameSettingChanged 事件
         GameSettingsEvent.OnGameSettingChanged += SetSASettings; 
     }
 
     public void SetSASettings(){
-        APISpace_Token = GameSettingsEntity.Instance.APISpaceAPI;
+        API_Key = GameSettingsEntity.Instance.APISpaceAPI;
+        
+        if (string.IsNullOrEmpty(API_Key)) {
+            Debug.LogWarning("SAService: LLM API Key 未设置，情感分析将使用默认结果");
+        }
     }
     
 
@@ -23,14 +32,35 @@ public class SAService
     {
         try
         {
-            string content = msg.Replace("\n", "").Replace(" ", "").Replace("\t", "").Replace("\r", "");
-            string utf = HttpUtility.UrlEncode(content, Encoding.UTF8);
-            string serviceAddress = "https://eolink.o.apispace.com/wbqgfx/api/v1/forward/sentiment_anls?text=" + utf;
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(serviceAddress);
-            request.Method = "GET";
-            request.ContentType = "text/html;charset=UTF-8";
-            request.Headers.Add("X-APISpace-Token", APISpace_Token);
-            request.Headers.Add("Authorization-Type", "apikey");
+            string content = msg.Replace("\t", "").Replace("\r", "");
+            
+            // 构建 OpenAI 兼容的请求
+            string systemPrompt = "你是一个情感分析专家。请分析以下文本的情感，并以纯JSON格式返回结果（不要使用markdown代码块），包含以下字段：positive_prob（积极概率0-1）、negative_prob（消极概率0-1）、sentiments（情感极性概率0-1）、sentences（情感分类数组：0负向，1中性，2正向）、style（情感风格：cheerful、sad、angry、fearful、disgruntled、serious、customerservice）。请确保返回的是有效的JSON对象，不要包含任何其他文本或markdown格式。";
+            
+            // 使用简单的字符串拼接构建 JSON
+            string jsonPayload = "{" +
+                "\"model\":\"" + Model + "\"," +
+                "\"messages\":[" +
+                "{\"role\":\"system\",\"content\":\"" + EscapeJsonString(systemPrompt) + "\"}," +
+                "{\"role\":\"user\",\"content\":\"" + EscapeJsonString(content) + "\"}" +
+                "]," +
+                "\"temperature\":0.1," +
+                "\"max_tokens\":200" +
+            "}";
+
+            byte[] data = Encoding.UTF8.GetBytes(jsonPayload);
+            
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(API_Endpoint);
+            request.Method = "POST";
+            request.ContentType = "application/json";
+            request.ContentLength = data.Length;
+            request.Headers.Add("Authorization", "Bearer " + API_Key);
+            
+            using (Stream stream = request.GetRequestStream())
+            {
+                stream.Write(data, 0, data.Length);
+            }
+            
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
             Stream myResponseStream = response.GetResponseStream();
             StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.UTF8);
@@ -38,62 +68,130 @@ public class SAService
             myStreamReader.Close();
             myResponseStream.Close();
 
-            int start_positive = retString.IndexOf("positive_prob") + 16;
-            int start_negative = retString.IndexOf("negative_prob") + 16;
-            int start_sentiments = retString.IndexOf("sentiments") + 13;
-            int start_Sentences = retString.IndexOf("sentences") + 12;
-            int start_Style = start_Sentences + 3;
-            string positive_prob = retString.Substring(start_positive, retString.IndexOf(",", start_positive) - start_positive);
-            string negative_prob = retString.Substring(start_negative, retString.IndexOf(",", start_negative) - start_negative);
-            string sentiments = retString.Substring(start_sentiments, retString.IndexOf(",", start_sentiments) - start_sentiments);
-            string sentences = retString.Substring(start_Sentences, 1);
-            string style_hao = retString.Substring(start_Style + 5, 1);
-            string style_le = retString.Substring(start_Style + 13, 1);
-            string style_ai = retString.Substring(start_Style + 21, 1);
-            string style_nu = retString.Substring(start_Style + 29, 1);
-            string style_ju = retString.Substring(start_Style + 37, 1);
-            string style_e = retString.Substring(start_Style + 45, 1);
-            string style_jing = retString.Substring(start_Style + 53, 1);
+            // 解析 LLM 返回的 JSON 响应
+            return ParseLLMResponse(retString);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"情感分析API调用失败: {ex.Message}");
+            // 返回默认值
+            return new SAEntity
+            {
+                Positive_prob = 0.5,
+                Negative_prob = 0.5,
+                Sentiments = 0.5,
+                Sentences = 1,
+                Style = "customerservice"
+            };
+        }
+    }
+    
+    private string EscapeJsonString(string input)
+    {
+        return input.Replace("\\", "\\\\")
+                   .Replace("\"", "\\\"")
+                   .Replace("\n", "\\n")
+                   .Replace("\r", "\\r")
+                   .Replace("\t", "\\t");
+    }
+    
+    private SAEntity ParseLLMResponse(string response)
+    {
+        try
+        {
+            Debug.Log($"LLM Response: {response}");
+            
+            // 尝试解析 JSON 响应
+            var responseObj = JsonConvert.DeserializeObject<dynamic>(response);
+            
+            // 获取 content
+            string content = responseObj.choices[0].message.content.ToString();
+            Debug.Log($"Extracted content: {content}");
+            
+            // 清理 content 中的转义字符
+            content = content.Replace("\\n", "\n").Replace("\\\"", "\"").Replace("\\r", "\r").Replace("\\t", "\t");
+            
+            // 提取 JSON 内容（处理 markdown 代码块）
+            string jsonContent = ExtractJsonFromContent(content);
+            
+            // 尝试解析 content 中的 JSON
+            var sentimentData = JsonConvert.DeserializeObject<dynamic>(jsonContent);
+            
             SAEntity sAEntity = new SAEntity();
-            sAEntity.Positive_prob = Convert.ToDouble(positive_prob);
-            sAEntity.Negative_prob = Convert.ToDouble(negative_prob);
-            sAEntity.Sentiments = Convert.ToDouble(sentiments);
-            sAEntity.Sentences = Convert.ToInt32(sentences);
-            if (style_hao == "1" || style_le == "1"/* || sAEntity.Sentences == 2*/)
+            sAEntity.Positive_prob = (double)sentimentData.positive_prob;
+            sAEntity.Negative_prob = (double)sentimentData.negative_prob;
+            sAEntity.Sentiments = (double)sentimentData.sentiments;
+            
+            // 处理 sentences 字段，如果是数组则取平均值，如果是单个值则直接使用
+            if (sentimentData.sentences is Newtonsoft.Json.Linq.JArray)
             {
-                sAEntity.Style = "cheerful";
-            }
-            else if (style_ai == "1")
-            {
-                sAEntity.Style = "sad";
-            }
-            else if (style_nu == "1")
-            {
-                sAEntity.Style = "angry";
-            }
-            else if (style_ju == "1")
-            {
-                sAEntity.Style = "fearful";
-            }
-            else if (style_e == "1")
-            {
-                sAEntity.Style = "disgruntled";
-            }
-            else if (style_jing == "1")
-            {
-                sAEntity.Style = "serious";
+                var sentencesArray = sentimentData.sentences.ToObject<int[]>();
+                if (sentencesArray.Length > 0)
+                {
+                    int sum = 0;
+                    foreach (int value in sentencesArray)
+                    {
+                        sum += value;
+                    }
+                    sAEntity.Sentences = (int)Math.Round((double)sum / sentencesArray.Length);
+                }
+                else
+                {
+                    sAEntity.Sentences = 1;
+                }
             }
             else
             {
-                sAEntity.Style = "customerservice";
+                sAEntity.Sentences = (int)sentimentData.sentences;
             }
+            
+            sAEntity.Style = sentimentData.style.ToString();
+            
             return sAEntity;
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
-            throw new Exception();
+            Debug.LogError($"解析LLM响应失败: {ex.Message}");
+            Debug.LogError($"原始响应: {response}");
+            // 返回默认值
+            return new SAEntity
+            {
+                Positive_prob = 0.5,
+                Negative_prob = 0.5,
+                Sentiments = 0.5,
+                Sentences = 1,
+                Style = "customerservice"
+            };
+        }
+    }
+    
+    private string ExtractJsonFromContent(string content)
+    {
+        // 检查是否包含 markdown 代码块
+        if (content.Contains("```json"))
+        {
+            // 提取 ```json 和 ``` 之间的内容
+            int startIndex = content.IndexOf("```json") + 7;
+            int endIndex = content.LastIndexOf("```");
+            
+            if (startIndex >= 0 && endIndex > startIndex)
+            {
+                return content.Substring(startIndex, endIndex - startIndex).Trim();
+            }
+        }
+        else if (content.Contains("```"))
+        {
+            // 提取 ``` 和 ``` 之间的内容
+            int startIndex = content.IndexOf("```") + 3;
+            int endIndex = content.LastIndexOf("```");
+            
+            if (startIndex >= 0 && endIndex > startIndex)
+            {
+                return content.Substring(startIndex, endIndex - startIndex).Trim();
+            }
         }
         
+        // 如果没有代码块，直接返回原内容
+        return content;
     }
 }

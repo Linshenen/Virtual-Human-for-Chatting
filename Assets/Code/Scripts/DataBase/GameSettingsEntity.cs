@@ -21,7 +21,7 @@ public class GameSettingsEntity : Singleton<GameSettingsEntity>
     {
         // 从json文件中读取游戏设置
         string readData;
-        string fileUrl = Application.persistentDataPath + "\\GameSettings.json";
+        string fileUrl = Path.Combine(Application.persistentDataPath, "GameSettings.json");
         if(File.Exists(fileUrl)){
             using (StreamReader sr = File.OpenText(fileUrl))
             {
@@ -40,6 +40,7 @@ public class GameSettingsEntity : Singleton<GameSettingsEntity>
             this.Speaker = readData.Substring(start_position[1] + 1, readData.IndexOf("\"", start_position[1] + 1) - start_position[1] - 1);
             this.ChatGPTAPI = readData.Substring(start_position[2] + 1, readData.IndexOf("\"", start_position[2] + 1) - start_position[2] - 1);
             this.AzureAPI = readData.Substring(start_position[3] + 1, readData.IndexOf("\"", start_position[3] + 1) - start_position[3] - 1);
+            Debug.Log($"Loaded AzureAPI (Minimax): {(string.IsNullOrEmpty(this.AzureAPI) ? "未设置" : this.AzureAPI.Substring(0, System.Math.Min(10, this.AzureAPI.Length)) + "...")}");
             this.APISpaceAPI = readData.Substring(start_position[4] + 1, readData.IndexOf("\"", start_position[4] + 1) - start_position[4] - 1);
             this.Persona = readData.Substring(start_position[5] + 1, readData.IndexOf("\"", start_position[5] + 1) - start_position[5] - 1);
             // Debug.Log(this.LookTargetMode + "&" + this.Speaker + "&" + this.ChatGPTAPI + "&" + this.AzureAPI + "&" + this.APISpaceAPI + ".");

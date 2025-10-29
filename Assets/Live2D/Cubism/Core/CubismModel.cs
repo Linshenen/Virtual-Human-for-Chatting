@@ -210,6 +210,31 @@ namespace Live2D.Cubism.Core
         CubismParameterStore _parameterStore;
 
         /// <summary>
+        /// Whether parameter repetition is performed for the entire model.
+        /// </summary>
+        [SerializeField]
+        private bool _isOverriddenParameterRepeat = true;
+
+
+        /// <summary>
+        /// Checks whether parameter repetition is performed for the entire model.
+        /// </summary>
+        /// <returns>True if parameter repetition is performed for the entire model; otherwise returns false.</returns>
+        public bool GetOverrideFlagForModelParameterRepeat()
+        {
+            return _isOverriddenParameterRepeat;
+        }
+
+        /// <summary>
+        /// Sets whether parameter repetition is performed for the entire model.
+        /// </summary>
+        /// <param name="isRepeat">Use true to perform parameter repetition for the entire model, or false to not perform it.</param>
+        public void SetOverrideFlagForModelParameterRepeat(bool isRepeat)
+        {
+            _isOverriddenParameterRepeat = isRepeat;
+        }
+
+        /// <summary>
         /// True if instance is revived.
         /// </summary>
         public bool IsRevived
@@ -266,26 +291,7 @@ namespace Live2D.Cubism.Core
             }
 
 
-            // Revive unmanaged model.
-            TaskableModel = new CubismTaskableModel(Moc);
-
-            if (TaskableModel == null || TaskableModel.UnmanagedModel == null)
-            {
-                return;
-            }
-
-            // Revive proxies.
-            Parameters = GetComponentsInChildren<CubismParameter>();
-            Parts = GetComponentsInChildren<CubismPart>();
-            Drawables = GetComponentsInChildren<CubismDrawable>();
-
-            Parameters.Revive(TaskableModel.UnmanagedModel);
-            Parts.Revive(TaskableModel.UnmanagedModel);
-            Drawables.Revive(TaskableModel.UnmanagedModel);
-
-            CanvasInformation = new CubismCanvasInformation(TaskableModel.UnmanagedModel);
-
-            _parameterStore = GetComponent<CubismParameterStore>();
+            Reset(Moc);
         }
 
         /// <summary>
@@ -303,22 +309,54 @@ namespace Live2D.Cubism.Core
                 return;
             }
 
-            // Create and initialize proxies.
-            var parameters = CubismParameter.CreateParameters(TaskableModel.UnmanagedModel);
-            var parts = CubismPart.CreateParts(TaskableModel.UnmanagedModel);
-            var drawables = CubismDrawable.CreateDrawables(TaskableModel.UnmanagedModel);
+
+            Parameters = GetComponentsInChildren<CubismParameter>();
+            if (Parameters.Length < 1 && (transform.Find("Parameters") == null))
+            {
+                // Create and initialize proxies.
+                var parameters = CubismParameter.CreateParameters(TaskableModel.UnmanagedModel);
+                parameters.transform.SetParent(transform);
+                Parameters = parameters.GetComponentsInChildren<CubismParameter>();
+            }
+            else
+            {
+                Parameters.Revive(TaskableModel.UnmanagedModel);
+            }
 
 
-            parameters.transform.SetParent(transform);
-            parts.transform.SetParent(transform);
-            drawables.transform.SetParent(transform);
+            Parts = GetComponentsInChildren<CubismPart>();
+            if (Parts.Length < 1 && (transform.Find("Parts") == null))
+            {
+                // Create and initialize proxies.
+                var parts = CubismPart.CreateParts(TaskableModel.UnmanagedModel);
+                parts.transform.SetParent(transform);
+                Parts = parts.GetComponentsInChildren<CubismPart>();
+            }
+            else
+            {
+                Parts.Revive(TaskableModel.UnmanagedModel);
+            }
 
 
-            Parameters = parameters.GetComponentsInChildren<CubismParameter>();
-            Parts = parts.GetComponentsInChildren<CubismPart>();
-            Drawables = drawables.GetComponentsInChildren<CubismDrawable>();
+            Drawables = GetComponentsInChildren<CubismDrawable>();
+            if (Drawables.Length < 1 && (transform.Find("Drawables") == null))
+            {
+                // Create and initialize proxies.
+                var drawables = CubismDrawable.CreateDrawables(TaskableModel.UnmanagedModel);
+                drawables.transform.SetParent(transform);
+                Drawables = drawables.GetComponentsInChildren<CubismDrawable>();
+            }
+            else
+            {
+                Drawables.Revive(TaskableModel.UnmanagedModel);
+            }
+
 
             CanvasInformation = new CubismCanvasInformation(TaskableModel.UnmanagedModel);
+
+            RefreshParameterStore();
+
+            SetOverrideFlagForModelParameterRepeat(_isOverriddenParameterRepeat);
         }
 
         /// <summary>
@@ -337,6 +375,26 @@ namespace Live2D.Cubism.Core
 #else
             OnRenderObject();
 #endif
+        }
+
+        /// <summary>
+        /// パラメータストアを最新の情報に更新する。
+        /// </summary>
+        public void RefreshParameterStore()
+        {
+            // CubismParameterStore を取得する。
+            _parameterStore = GetComponent<CubismParameterStore>();
+
+
+            // Return early if empty.
+            if (_parameterStore == null)
+            {
+                return;
+            }
+
+
+            // 最新の情報に更新する。
+            _parameterStore.Refresh();
         }
 
 
@@ -453,9 +511,16 @@ namespace Live2D.Cubism.Core
             TaskableModel.TryReadParameters(Parameters);
 
             // restore last frame parameters value and parts opacity.
-            if(_parameterStore != null)
+            if (_parameterStore != null)
             {
+#if UNITY_EDITOR
+                if (Application.isPlaying)
+                {
+                    _parameterStore.RestoreParameters();
+                }
+#else
                 _parameterStore.RestoreParameters();
+#endif
             }
 
             // Trigger event.

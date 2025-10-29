@@ -5,6 +5,198 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 
+## [5-r.4.1] - 2025-07-17
+
+### Changed
+
+* Implement support for Android 16KB page size.
+
+### Fixed
+
+* Fix a bug that prevented builds from working under certain settings.
+
+
+## [5-r.4] - 2025-05-29
+
+### Added
+
+* Add an empty `AnimatorController` at the same hierarchy level as each model's Prefab.
+* Add an API to `CubismMotionJson` for verifying the consistency of `motion3.json`. by [@pillowtrucker](https://github.com/Live2D/CubismNativeFramework/pull/57)
+* Add parameter repeat processing that connects the right and left ends of the parameter to create a loop, allowing the motion to repeat.
+  * Add the variable `_isOverriddenParameterRepeat` to the `CubismModel` class for managing parameter repeat flags at the model level.
+  * Add variables `_isOverriddenUserParameterRepeat` to the `CubismModel` class and `_isParameterRepeated` to the `CubismParameter` class for managing parameter repeat flags for each parameter.
+
+### Changed
+
+* Change the version of the development project to `2022.3.59f1`.
+* Change CubismMath class not to inherit from MonoBehaviour.
+* Change `CubismMoc._bytes` not to be displayed in Inspector.
+
+### Fixed
+
+* Fix `CubismPhysicsController` to be in the correct disabled state.
+* When performing a Reimport Fixed a problem that `.cdi3.json` updates were not reflected in `CubismDisplayInfoParameterName`,`CubismDisplayInfoPartName`.
+* Fix a problem in which the slider of CubismParametersInspector and CubismPartsInspector in the Inspector window did not move when operated.
+* Fix a bug that CubismParametersInspector and CubismPartsInspector do not display the names of parameters and parts if .cdi3.json is not set on the model.
+* Fix `CubismParameterInspector` and `CubismPartInspector` can be operated in play mode.
+* Fix a bug that prevented MotionFade fade-out from working properly.
+* Fix unnecessary processing in `CubismFadeController`.
+* Fix so that end events are sent for all clips played by `CubismMotionController`.
+* Fix an error that occurred when playing a expression that uses parameters that do not exist in the model.
+
+
+## [5-r.3] - 2024-11-28
+
+### Added
+
+* Add processing to parse `CombinedParameters` from `.cdi3.json` file.
+  * Also add `CubismDisplayInfoCombinedParameterInfo` component to store this information.
+* Add `AnimationBeganHandler`, which calls a function when the motion playback starts, to both `CubismMotionController` and `CubismMotionLayer`.
+* Add the definition of the function `GetLogFunction` to `CubismCoreDll`.
+
+### Changed
+
+* Change an expression "overwrite" to "override" for multiply color, screen color, and culling to adapt the actual behavior.
+* Change `OnGeneratedCSProjectFiles` function to be disabled in Unity 2017.3 and later by [@moz-moz](https://github.com/moz-moz)
+* Change to a single function The initialization process in CubismModel class. by [@KT](https://creatorsforum.live2d.com/t/topic/2356/)
+* Change to optimize update process for Multiply Color and Screen Color.
+* Change argument type of `CubismMotionLayer.AnimationEndHandler` and `CubismMotionController.AnimationEndHandler` to match the current usage.
+* Move the definition of `csmSetLogFunction` from `CubismLogging` to `CubismCoreDll` and rename to `SetLogFunction`.
+* Raycast processing now supports 3D intersection determination.
+* In the `AsyncBenchmark` scene and `AutomaticAsyncBenchmark`, changed it so that asynchronous processing is not performed in WebGL.
+
+### Fixed
+
+* The fade in and fade out functionality has been improved to better maintain compatibility with other CubismSDK implementations.
+* Fix an issue in which when the number of textures for masks was increased, masks were not generated for the increased number of textures from the time of execution.
+* Fix an issue that caused an error when parsing Json if the name of the model had certain characters.
+* Fix the condition for setting the fade-out end time for Expression.
+
+## [5-r.2] - 2024-04-04
+
+### Added
+
+* Add HarmonyOS NEXT from the tested environment.
+
+### Fixed
+
+* Fix an issue where the `Allow 'unsafe' Code` property was not enabled in the `Live2D.Cubism.asmdef`.
+
+
+## [5-r.1] - 2024-03-26
+
+### Added
+
+* Add `CubimMath` class in namespace `Live2D.Cubism.Framework.Utils`.
+* Add function `ModF()` to compute floating-point remainder in `CubismMath` class.
+
+### Changed
+
+* Change the message to output the latest Moc version supported by the CubismCore when the `.moc3` file fails to load correctly.
+* Change the version of the development project to `2021.3.36f1`.
+
+### Deprecated
+
+* The `ToIndex()` and `ReturnTiles()` functions of the `CubismMaskTilePool` class are not used.
+
+### Fixed
+
+* Fix fade calculation bug in MotionFade.
+* Fix a bug in which masks were not generated correctly when using multiple render textures and displaying two or more models.
+* Fix an issue where normal processing could not be performed when `CubismMaskTilePool.Subdivisions` is less than `1`.
+
+### Removed
+
+* Remove `CubismWebGLPluginProcessor.cs`.
+ * This change is due to the removal of Cubism Core built with `Emscripten 1.38.48`.
+ * See `CHANGELOG.md` in Core.
+
+
+## [5-r.1-beta.4] - 2024-01-18
+
+### Added
+
+* Add `CubismDrawableInspector` and parent Part display.
+* Add `CubismPartInspector` to show parent and descendant trees.
+* Add expression to check for index out of range with `CubismRenderer.OnMaskPropertiesDidChange()`.
+
+### Changed
+
+* Change `CubismPartsInspectorInspector` to be hierarchical.
+
+### Fixed
+
+* Fix an issue where models with a specific number of masks could not be drawn correctly.
+
+## [5-r.1-beta.3] - 2023-11-14
+
+### Added
+
+* Add `HarmonicMotion` sample scenes.
+
+### Changed
+
+* Change the version of the development project to `2021.3.30f1`.
+* Change the value of `Editor` to `AnyCPU` in the `Platform settings` of `Live2DCubismCore.bundle`.
+  * Apple Silicon version of the Unity Editor will work without the need to change `Platform settings`.
+
+### Fixed
+
+* Fix an error when displaying CubismRendererInspector for uninitialized models.
+* Fix condition for clearing AnimationCurve when Reimporting .motion3.json.
+* Fix fade calculation bug in MotionFade.
+
+
+## [5-r.1-beta.2] - 2023-09-28
+
+### Added
+
+* Added configuration file so that assemblies are split.
+
+### Changed
+
+* Replace the sample model `Mao` with the updated version that is compatible with Cubism 5.0.
+
+### Fixed
+
+* Fix an issue where 1 byte of memory was allocated unnecessarily.
+* Fix a bug where automatic eye blinking did not close the eyes fully.
+
+
+## [5-r.1-beta.1] - 2023-08-17
+
+### Changed
+
+* When importing a Cubism Model in Unity Workflow, the AnimatorController is now set to the Animator in the Model Prefab.
+* Change so that multiply and screen colors applied to parent parts are propagated to child parts.
+
+### Fixed
+
+* Fix an issue where information was being got using indexes instead of IDs when getting cdi3.json data.
+* Fix a bug that prevented proper operation when the Unity Transition was longer than the motion fade.
+
+
+## [4-r.7] - 2023-05-25
+
+### Added
+
+* The number of render textures used can now be increased arbitrarily.
+  * The maximum number of masks when using multiple render textures has been increased to "number of render textures * 32".
+  * You can also continue to use the pre-R6_2 method.
+* Importing a model now generates a MaskTexture asset containing the model's name.
+  * It is generated only if the model prefab has not been generated.
+* Add the function of checking consistency on importing a MOC3. (`CubismMoc.CreateFrom`)
+  * This feature is enabled by default.Please see the following manual for more information.
+    * https://docs.live2d.com/cubism-sdk-manual/moc3-consistency/
+* Add component for changing Multiply Color / Screen Color from parent part.
+  * Components are automatically added to each part object of the model when the model is imported.
+
+### Fixed
+
+* Fix to improve physics and rendering performance. by [@ppcuni](https://github.com/ppcuni)
+* Fix an issue with `ResetSwapInfoFlags` function where flags were not initialized correctly. by [@ppcuni](https://github.com/ppcuni)
+
+
 ## [4-r.6.2] - 2023-03-16
 
 ### Fixed
@@ -282,6 +474,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * Fix issue where Priority value was not reset after playing motion with CubismMotionController.
 
 
+[5-r.4.1]: https://github.com/Live2D/CubismUnityComponents/compare/5-r.4...5-r.4.1
+[5-r.4]: https://github.com/Live2D/CubismUnityComponents/compare/5-r.3...5-r.4
+[5-r.3]: https://github.com/Live2D/CubismUnityComponents/compare/5-r.2...5-r.3
+[5-r.2]: https://github.com/Live2D/CubismUnityComponents/compare/5-r.1...5-r.2
+[5-r.1]: https://github.com/Live2D/CubismUnityComponents/compare/5-r.1-beta.4...5-r.1
+[5-r.1-beta.4]: https://github.com/Live2D/CubismUnityComponents/compare/5-r.1-beta.3...5-r.1-beta.4
+[5-r.1-beta.3]: https://github.com/Live2D/CubismUnityComponents/compare/5-r.1-beta.2...5-r.1-beta.3
+[5-r.1-beta.2]: https://github.com/Live2D/CubismUnityComponents/compare/5-r.1-beta.1...5-r.1-beta.2
+[5-r.1-beta.1]: https://github.com/Live2D/CubismUnityComponents/compare/4-r.7...5-r.1-beta.1
+[4-r.7]: https://github.com/Live2D/CubismUnityComponents/compare/4-r.6.2...4-r.7
 [4-r.6.2]: https://github.com/Live2D/CubismUnityComponents/compare/4-r.6.1...4-r.6.2
 [4-r.6.1]: https://github.com/Live2D/CubismUnityComponents/compare/4-r.6...4-r.6.1
 [4-r.6]: https://github.com/Live2D/CubismUnityComponents/compare/4-r.5...4-r.6

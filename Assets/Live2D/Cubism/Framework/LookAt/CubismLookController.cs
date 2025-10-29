@@ -96,6 +96,7 @@ namespace Live2D.Cubism.Framework.LookAt
         /// </summary>
         private Vector3 GoalPosition { get; set; }
 
+
         /// <summary>
         /// Buffer for <see cref="Mathf.SmoothDamp(float, float, ref float, float)"/> velocity.
         /// </summary>

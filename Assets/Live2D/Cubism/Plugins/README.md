@@ -13,11 +13,12 @@ This folder contains platform-specific library files.
 | Platform | Architecture | Path | Note |
 | --- | --- | --- | --- |
 | Android | ARM64 | Android/arm64-v8a |   |
-| Android | ARMv7 | Android/armeabi-v7a |   |
 | Android | x86 | Android/x86 |   |
 | Android | x86_64 | Android/x86_64 |   |
 | Emscripten |  | Experimental/Emscripten/latest | bitcode(upstream LLVM wasm backend) |
-| Emscripten |  | Experimental/Emscripten/1_38_48 | bitcode(fastcomp backend) |
+| HarmonyOS | ARM64 | HarmonyOS/arm64-v8a |   |
+| HarmonyOS | ARMv7 | HarmonyOS/armeabi-v7a |  |
+| HarmonyOS | x86_64 | HarmonyOS/x86_64 |   |
 | iOS | ARM64 | iOS/xxx-iphoneos | iOS Devices |
 | iOS | x86_64 | iOS/xxx-iphonesimulator | iOS Simulator |
 | Linux | x86_64 | Linux/x86_64 |   |

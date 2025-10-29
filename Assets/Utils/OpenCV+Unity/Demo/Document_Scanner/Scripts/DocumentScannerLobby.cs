@@ -13,7 +13,7 @@
 		}
 
 		void OnDestroy() {
-			SceneManager.UnloadScene ("DocumentScannerScene");
+			SceneManager.UnloadSceneAsync("DocumentScannerScene");
 		}
 
 		public void OnButton(string name) {

@@ -126,8 +126,14 @@ namespace Live2D.Cubism.Framework.Json
                 modelJson.FileReferences.Motions.Motions[i] = new SerializableMotion[motionCount];
 
 
+                var fadeInTime = -1.0f;
+                var fadeOutTime = -1.0f;
                 for (var j = 0; j < motionCount; j++)
                 {
+                    // Reset fade time cache.
+                    fadeInTime = -1.0f;
+                    fadeOutTime = -1.0f;
+
                     if (motionGroup.Get(j).GetMap(null).ContainsKey("File"))
                     {
                         modelJson.FileReferences.Motions.Motions[i][j].File = motionGroup.Get(j).Get("File").toString();
@@ -140,13 +146,15 @@ namespace Live2D.Cubism.Framework.Json
 
                     if (motionGroup.Get(j).GetMap(null).ContainsKey("FadeInTime"))
                     {
-                        modelJson.FileReferences.Motions.Motions[i][j].FadeInTime = motionGroup.Get(j).Get("FadeInTime").ToFloat();
+                        fadeInTime = motionGroup.Get(j).Get("FadeInTime").ToFloat();
                     }
+                    modelJson.FileReferences.Motions.Motions[i][j].FadeInTime = fadeInTime;
 
                     if (motionGroup.Get(j).GetMap(null).ContainsKey("FadeOutTime"))
                     {
-                        modelJson.FileReferences.Motions.Motions[i][j].FadeOutTime = motionGroup.Get(j).Get("FadeOutTime").ToFloat();
+                        fadeOutTime = motionGroup.Get(j).Get("FadeOutTime").ToFloat();
                     }
+                    modelJson.FileReferences.Motions.Motions[i][j].FadeOutTime = fadeOutTime;
                 }
             }
 
@@ -391,8 +399,8 @@ namespace Live2D.Cubism.Framework.Json
 
 #if UNITY_EDITOR
             // Add parameters and parts inspectors.
-            model.gameObject.AddComponent<CubismParametersInspector>();
-            model.gameObject.AddComponent<CubismPartsInspector>();
+            model.gameObject.AddComponent<CubismParametersInspector>().hideFlags = HideFlags.DontSaveInBuild;
+            model.gameObject.AddComponent<CubismPartsInspector>().hideFlags = HideFlags.DontSaveInBuild;
 #endif
 
             // Create renderers.
@@ -420,8 +428,21 @@ namespace Live2D.Cubism.Framework.Json
             }
 
 
+            if (model.Parts != null)
+            {
+                var parts = model.Parts;
+
+                // Create and initialize partColorsEditors.
+                for (int i = 0; i < parts.Length; i++)
+                {
+                    var partColorsEditor = parts[i].gameObject.AddComponent<CubismPartColorsEditor>();
+                    partColorsEditor.TryInitialize(model);
+                }
+            }
+
+
             // Initialize drawables.
-            if(HitAreas != null)
+            if (HitAreas != null)
             {
                 for (var i = 0; i < HitAreas.Length; i++)
                 {
@@ -446,7 +467,6 @@ namespace Live2D.Cubism.Framework.Json
 
             // Initialize groups.
             var parameters = model.Parameters;
-
 
             for (var i = 0; i < parameters.Length; ++i)
             {
@@ -479,23 +499,70 @@ namespace Live2D.Cubism.Framework.Json
                 if (cdi3Json != null)
                 {
                     var cubismDisplayInfoParameterName = parameters[i].gameObject.AddComponent<CubismDisplayInfoParameterName>();
-                    cubismDisplayInfoParameterName.Name = cdi3Json.Parameters[i].Name;
+                    cubismDisplayInfoParameterName.Name = parameters[i].Id;
+                    for (int j = 0; j < cdi3Json.Parameters.Length; j++)
+                    {
+                        if (cdi3Json.Parameters[j].Id == parameters[i].Id)
+                        {
+                            cubismDisplayInfoParameterName.Name = cdi3Json.Parameters[j].Name;
+                            break;
+                        }
+                    }
                     cubismDisplayInfoParameterName.DisplayName = string.Empty;
                 }
-
             }
 
-            // Setting up the part name for display.
             if (cdi3Json != null)
             {
+                // Setting up the part name for display.
                 // Initialize groups.
                 var parts = model.Parts;
 
                 for (var i = 0; i < parts.Length; i++)
                 {
                     var cubismDisplayInfoPartNames = parts[i].gameObject.AddComponent<CubismDisplayInfoPartName>();
-                    cubismDisplayInfoPartNames.Name = cdi3Json.Parts[i].Name;
+                    cubismDisplayInfoPartNames.Name = parts[i].Id;
+                    for (int j = 0; j < cdi3Json.Parts.Length; j++)
+                    {
+                        if (cdi3Json.Parts[j].Id == parts[i].Id)
+                        {
+                            cubismDisplayInfoPartNames.Name = cdi3Json.Parts[j].Name;
+                            break;
+                        }
+                    }
                     cubismDisplayInfoPartNames.DisplayName = string.Empty;
+                }
+
+                // Get combined parameter information
+                var combinedParameters = cdi3Json.CombinedParameters;
+
+                if (combinedParameters != null)
+                {
+                    // Parameters are always combined in pairs of two.
+                    const int combinedParameterCount = 2;
+
+                    // Set up CubismDisplayInfoCombinedParameterInfo component.
+                    var combinedParameterInfo = model.gameObject.AddComponent<CubismDisplayInfoCombinedParameterInfo>();
+                    combinedParameterInfo.CombinedParameters = new CubismDisplayInfo3Json.CombinedParameter[combinedParameters.Length];
+
+                    for (var index = 0; index < combinedParameters.Length; index++)
+                    {
+                        // Skip if the combined parameter is invalid.
+                        if (combinedParameters[index].Ids == null || combinedParameters[index].Ids.Length != combinedParameterCount)
+                        {
+                            Debug.LogWarning($"The data contains invalid CombinedParameters in {model.Moc.name}.cdi3.json.");
+                            continue;
+                        }
+
+                        var combinedParameterIds = combinedParameters[index].Ids;
+
+                        // Set CombinedParameter.
+                        combinedParameterInfo.CombinedParameters[index] = new CubismDisplayInfo3Json.CombinedParameter
+                        {
+                            HorizontalParameterId = combinedParameterIds[0],
+                            VerticalParameterId = combinedParameterIds[1]
+                        };
+                    }
                 }
             }
 

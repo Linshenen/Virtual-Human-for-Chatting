@@ -1,5 +1,4 @@
 using JetBrains.Annotations;
-using Microsoft.CognitiveServices.Speech.Transcription;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,11 +12,11 @@ public class GptTurboScript : MonoBehaviour
     /// <summary>
     /// api URL
     /// </summary>
-    private string m_ApiUrl = "https://api.openai-proxy.com/v1/chat/completions";
+    private string m_ApiUrl = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
     /// <summary>
     /// gpt-3.5-turbo
     /// </summary>
-    private string m_gptModel = "gpt-3.5-turbo";
+    private string m_gptModel = "ep-20251029155135-mnw5s";
     /// <summary>
     /// 缓存对话
     /// </summary>
@@ -97,6 +96,7 @@ public class GptTurboScript : MonoBehaviour
     public class PostData
     {
         public string model;
+        public float temperature = 1;
         public List<SendData> messages;
     }
 

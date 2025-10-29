@@ -1,0 +1,160 @@
+using System;
+using System.IO;
+using System.Net;
+using System.Text;
+using UnityEngine;
+
+public class SAService
+{
+    private string API_Key;
+    private string API_Endpoint = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+    private string Model = "doubao-seed-1-6-flash-250828";
+    
+    public SAService()
+    {
+        API_Key = GameSettingsEntity.Instance.APISpaceAPI;
+        // 注册 OnGameSettingChanged 事件
+        GameSettingsEvent.OnGameSettingChanged += SetSASettings; 
+    }
+
+    public void SetSASettings(){
+        API_Key = GameSettingsEntity.Instance.APISpaceAPI;
+    }
+    
+
+    public SAEntity sentimentAnalysis(string msg)
+    {
+        try
+        {
+            string content = msg.Replace("\t", "").Replace("\r", "");
+            
+            // 构建 OpenAI 兼容的请求
+            string systemPrompt = "你是一个情感分析专家。请分析以下文本的情感，并以JSON格式返回结果，包含以下字段：positive_prob（积极概率0-1）、negative_prob（消极概率0-1）、sentiments（情感极性概率0-1）、sentences（情感分类：0负向，1中性，2正向）、style（情感风格：cheerful、sad、angry、fearful、disgruntled、serious、customerservice）。";
+            
+            string jsonPayload = $@"{{
+                \"model\": \"{Model}\",
+                \"messages\": [
+                    {{
+                        \"role\": \"system\",
+                        \"content\": \"{EscapeJsonString(systemPrompt)}\"
+                    }},
+                    {{
+                        \"role\": \"user\",
+                        \"content\": \"{EscapeJsonString(content)}\"
+                    }}
+                ],
+                \"temperature\": 0.1,
+                \"max_tokens\": 200
+            }}";
+
+            byte[] data = Encoding.UTF8.GetBytes(jsonPayload);
+            
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(API_Endpoint);
+            request.Method = "POST";
+            request.ContentType = "application/json";
+            request.ContentLength = data.Length;
+            request.Headers.Add("Authorization", "Bearer " + API_Key);
+            
+            using (Stream stream = request.GetRequestStream())
+            {
+                stream.Write(data, 0, data.Length);
+            }
+            
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream myResponseStream = response.GetResponseStream();
+            StreamReader myStreamReader = new StreamReader(myResponseStream, Encoding.UTF8);
+            string retString = myStreamReader.ReadToEnd();
+            myStreamReader.Close();
+            myResponseStream.Close();
+
+            // 解析 LLM 返回的 JSON 响应
+            return ParseLLMResponse(retString);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"情感分析API调用失败: {ex.Message}");
+            // 返回默认值
+            return new SAEntity
+            {
+                Positive_prob = 0.5,
+                Negative_prob = 0.5,
+                Sentiments = 0.5,
+                Sentences = 1,
+                Style = "customerservice"
+            };
+        }
+    }
+    
+    private string EscapeJsonString(string input)
+    {
+        return input.Replace("\\", "\\\\")
+                   .Replace("\"", "\\\"")
+                   .Replace("\n", "\\n")
+                   .Replace("\r", "\\r")
+                   .Replace("\t", "\\t");
+    }
+    
+    private SAEntity ParseLLMResponse(string response)
+    {
+        try
+        {
+            // 从 LLM 响应中提取 JSON 内容
+            int startIndex = response.IndexOf("content\":\"") + 11;
+            int endIndex = response.IndexOf("\"}", startIndex);
+            
+            if (startIndex < 11 || endIndex <= startIndex)
+            {
+                throw new Exception("无法解析LLM响应内容");
+            }
+            
+            string jsonContent = response.Substring(startIndex, endIndex - startIndex);
+            
+            // 解析 JSON 内容
+            SAEntity sAEntity = new SAEntity();
+            
+            // 提取 positive_prob
+            int posStart = jsonContent.IndexOf("positive_prob\":") + 15;
+            int posEnd = jsonContent.IndexOf(",", posStart);
+            string positive_prob = jsonContent.Substring(posStart, posEnd - posStart);
+            sAEntity.Positive_prob = Convert.ToDouble(positive_prob);
+            
+            // 提取 negative_prob
+            int negStart = jsonContent.IndexOf("negative_prob\":") + 15;
+            int negEnd = jsonContent.IndexOf(",", negStart);
+            string negative_prob = jsonContent.Substring(negStart, negEnd - negStart);
+            sAEntity.Negative_prob = Convert.ToDouble(negative_prob);
+            
+            // 提取 sentiments
+            int sentStart = jsonContent.IndexOf("sentiments\":") + 12;
+            int sentEnd = jsonContent.IndexOf(",", sentStart);
+            string sentiments = jsonContent.Substring(sentStart, sentEnd - sentStart);
+            sAEntity.Sentiments = Convert.ToDouble(sentiments);
+            
+            // 提取 sentences
+            int sentClassStart = jsonContent.IndexOf("sentences\":") + 11;
+            int sentClassEnd = jsonContent.IndexOf(",", sentClassStart);
+            string sentences = jsonContent.Substring(sentClassStart, sentClassEnd - sentClassStart);
+            sAEntity.Sentences = Convert.ToInt32(sentences);
+            
+            // 提取 style
+            int styleStart = jsonContent.IndexOf("style\":\"") + 8;
+            int styleEnd = jsonContent.IndexOf("\"", styleStart);
+            sAEntity.Style = jsonContent.Substring(styleStart, styleEnd - styleStart);
+            
+            return sAEntity;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"解析LLM响应失败: {ex.Message}");
+            // 返回默认值
+            return new SAEntity
+            {
+                Positive_prob = 0.5,
+                Negative_prob = 0.5,
+                Sentiments = 0.5,
+                Sentences = 1,
+                Style = "customerservice"
+            };
+        }
+    }
+}

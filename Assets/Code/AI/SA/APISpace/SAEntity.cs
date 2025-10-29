@@ -1,9 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 public class SAEntity
 {
     // 表示积极类别的概率
@@ -20,5 +14,4 @@ public class SAEntity
 
     // 表示情感极性分类结果
     public string Style { get; set; }
-
 }

@@ -160,7 +160,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 460466283580706437, guid: c56c2a0cc20c46a43a1f12bd6eaea179, type: 3}
       propertyPath: m_Name
-      value: TaoHua Model
+      value: TaoHua
       objectReference: {fileID: 0}
     - target: {fileID: 464523223572667719, guid: c56c2a0cc20c46a43a1f12bd6eaea179, type: 3}
       propertyPath: m_Mesh

@@ -4,40 +4,38 @@
 
 # Notices
 
-## [Caution] Support for Unity 2022 (2022-09-08)
+## [Restrictions] Regarding lip-sync support from AudioClips when exporting to WebGL. (2024-11-28)
 
-We have confirmed the operation of the Cubism SDK with `2022.1.14f1` on the Unity Editor.
-However, this is a test run and we do not guarantee that all functions, including export from Unity Editor, will work properly.
-Please consider using Unity 2021 or other LTS versions when using the product as an embedded product in your application.
+The lip-sync from audio feature in the Cubism SDK for Unity uses the AudioClip API to obtain waveform information.
+However, since the API for dynamically obtaining waveform information from an AudioClip is not supported for WebGL builds in Unity, the lip-sync feature in the Cubism SDK for Unity is also not supported for WebGL exports.
 
-Please refer to [Development Environment](README.md#Developmentenvironment) in the `README.md` for the supported Unity versions.
+For details, please check　the official Unity documentation.
 
-
-## [Limitation] Support for Apple products (updated 2023-01-26)
-
-Apple Silicon Mac is now supported by the Cubism 4 SDK for Unity R4 (4-r.4).
-† Please note that Cubism Editor is not currently compatible with Apple Silicon Macs.
-In addition, please note that we do not work on macOS Ventura v13.0.
+* [Audio in WebGL](https://docs.unity3d.com/Manual/webgl-audio.html)
 
 
-## [Caution] Operation on the Apple Silicon version of Unity Editor (2023-01-26)
+## [Restrictions] Manipulation of `RenderTextureCount` value for mask textures during execution (2024-03-26)
 
-To use Cubism Core for macOS on the Apple Silicon version of the Unity Editor, you need to modify the `Live2DCubismCore.bundle` under `Assets/Live2D/Cubism/Plugins/macOS` from the inspector.
-The procedure is as follows:
-
-1. Select `Live2DCubismCore.bundle` and display the inspector.
-1. Go to `Platform Settings` > `Editor` and select `Apple Silicon` or `Any CPU`.
-1. Restart the Unity Editor.
+If `CubismMaskTexture.RenderTextureCount` is changed during scene execution to a value greater than that at the start of execution, the mask will not be regenerated correctly.
+A supported version will be announced in a future release.
 
 
-## [Caution] Support for Windows 11 (2021-12-09)
+## [Restrictions] Support for Windows ARM64 (2024-01-18)
 
-Regarding Windows 11 compatibility, we have confirmed that the deliverables work on Windows 11.
-However, please note that we do not guarantee the operation of builds using Windows 11.
-Supported version will be announced with a future release.
+Cubism SDK for Unity currently does not support Windows ARM64 builds for Unity 2023.1 or later.
+A supported version will be announced in a future release.
 
 
-### [Caution] About using `.bundle` and `.dylib` on macOS Catalina or later
+## [Caution] Support for Apple's Privacy Manifest Policy
+
+This product does not use the APIs or third-party products specified in Apple's privacy manifest policy.
+This will be addressed in future updates if this product requires such support.
+Please check the documentation published by Apple for details.
+
+[Privacy updates for App Store submissions](https://developer.apple.com/news/?id=3d8a9yyh)
+
+
+## [Caution] About using `.bundle` and `.dylib` on macOS Catalina or later
 
 To use `.bundle` and `.dylib` on macOS Catalina or later, you need to be connected to an online environment to verify your notarization.
 

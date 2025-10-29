@@ -153,6 +153,12 @@ namespace Live2D.Cubism.Samples.OriginalWorkflow.Demo
 
             if(!Input.GetMouseButtonDown(0))
             {
+                if (!_motionController.IsPlayingAnimation())
+                {
+                    Debug.Log("Body animation : Play : " + _loopMotion.name);
+
+                    _motionController.PlayAnimation(_loopMotion, priority: CubismMotionPriority.PriorityIdle);
+                }
                 return;
             }
 
@@ -223,12 +229,9 @@ namespace Live2D.Cubism.Samples.OriginalWorkflow.Demo
         /// Called at the end of the animation.
         /// </summary>
         /// <param name="instanceId"></param>
-        private void AnimationEnded(float instanceId)
+        private void AnimationEnded(int instanceId)
         {
-            // Play loop motion.
-            _motionController.PlayAnimation(_loopMotion, priority:CubismMotionPriority.PriorityIdle);
-
-            Debug.Log("Body animation : Play : " + _loopMotion.name);
+            Debug.Log("AnimationEnded");
         }
     }
 }

@@ -28,8 +28,8 @@ public class SubmitChat : MonoBehaviour
     public void StartSTT(){
         StartSTTAsync();
     }
-    public async Task StartSTTAsync(){
-        await azureSpeech.TurnSpeechToText();
+    public void StartSTTAsync(){
+        azureSpeech.TurnSpeechToText();
         string sttResult = azureSpeech.m_STTResult;
         if (sttResult.Equals(""))
         {

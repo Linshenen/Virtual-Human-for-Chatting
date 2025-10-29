@@ -49,9 +49,9 @@ public class FreeChat : MonoBehaviour
             ReceiveKWRResultAsync();
         }
     }
-    async Task ReceiveKWRResultAsync()
+    void ReceiveKWRResultAsync()
     {
-        await azureSpeech.KeyWordRecognition();
+        azureSpeech.KeyWordRecognition();
         bool result = azureSpeech.m_KeyWordResult;
         if(result){
             TTSBuilder tTSBuilder = new BasicTTSBuilder();
@@ -72,9 +72,9 @@ public class FreeChat : MonoBehaviour
     {
         ReceiveSTTResultAsync(); // STT -> LLM
     }
-    async Task ReceiveSTTResultAsync()
+    void ReceiveSTTResultAsync()
     {
-        await azureSpeech.TurnSpeechToText();
+        azureSpeech.TurnSpeechToText();
         // yield return new WaitUntil(() => azureSpeech.m_STTResult != "");
         string msg = azureSpeech.m_STTResult;
         GeneratedAnswer(msg);

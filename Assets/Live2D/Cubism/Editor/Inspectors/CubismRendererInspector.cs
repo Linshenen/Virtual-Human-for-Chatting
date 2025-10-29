@@ -6,6 +6,7 @@
  */
 
 
+using Live2D.Cubism.Core;
 using Live2D.Cubism.Rendering;
 using UnityEditor;
 using UnityEngine;
@@ -35,6 +36,15 @@ namespace Live2D.Cubism.Editor.Inspectors
                 return;
             }
 
+            if (!renderer.isActiveAndEnabled)
+            {
+                var model = renderer.FindCubismModel(true);
+                var ctrl = model.GetComponent<CubismRenderController>();
+                if (!ctrl.IsInitialized)
+                {
+                    ctrl.TryInitializeRenderers();
+                }
+            }
 
             // Show settings.
             EditorGUILayout.ObjectField("Mesh", renderer.Mesh, typeof(Mesh), false);
@@ -42,30 +52,30 @@ namespace Live2D.Cubism.Editor.Inspectors
 
             EditorGUI.BeginChangeCheck();
 
-            // Display OverwriteFlagForDrawableMultiplyColors.
+            // Display OverrideFlagForDrawableMultiplyColors.
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                var overwriteFlagForDrawableMultiplyColors = EditorGUILayout.Toggle("OverwriteFlagForDrawableMultiplyColors", renderer.OverwriteFlagForDrawableMultiplyColors);
+                var overrideFlagForDrawableMultiplyColors = EditorGUILayout.Toggle("OverrideFlagForDrawableMultiplyColors", renderer.OverrideFlagForDrawableMultiplyColors);
 
                 if (scope.changed)
                 {
                     foreach (CubismRenderer cubismRenderer in targets)
                     {
-                        cubismRenderer.OverwriteFlagForDrawableMultiplyColors = overwriteFlagForDrawableMultiplyColors;
+                        cubismRenderer.OverrideFlagForDrawableMultiplyColors = overrideFlagForDrawableMultiplyColors;
                     }
                 }
             }
 
-            // Display OverwriteFlagForDrawableScreenColors.
+            // Display OverrideFlagForDrawableScreenColors.
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                var overwriteFlagForDrawableScreenColors = EditorGUILayout.Toggle("OverwriteFlagForDrawableScreenColors", renderer.OverwriteFlagForDrawableScreenColors);
+                var overrideFlagForDrawableScreenColors = EditorGUILayout.Toggle("OverrideFlagForDrawableScreenColors", renderer.OverrideFlagForDrawableScreenColors);
 
                 if (scope.changed)
                 {
                     foreach (CubismRenderer cubismRenderer in targets)
                     {
-                        cubismRenderer.OverwriteFlagForDrawableScreenColors = overwriteFlagForDrawableScreenColors;
+                        cubismRenderer.OverrideFlagForDrawableScreenColors = overrideFlagForDrawableScreenColors;
                     }
                 }
             }

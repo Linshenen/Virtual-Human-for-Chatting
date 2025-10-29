@@ -16,7 +16,7 @@ public class Audio2Face : MonoBehaviour
     private CubismParameter cheekPuffParam;
     private CubismParameter mouthZParam;
     private CubismParameter mouthFunnelParam;
-    private bool isFirstPlayAudio = true;
+    // private bool isFirstPlayAudio = true;
 
 
 
